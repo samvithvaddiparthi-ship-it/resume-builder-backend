@@ -3,30 +3,38 @@ const { generateResume } = require("../services/aiService");
 
 const generateResumeController = async (req, res) => {
   try {
-    const { resumeText, jobDescription } = req.body;
+    const { resumeText, jobDescription, name } = req.body;
 
-    if (!resumeText || !jobDescription) {
+    if (!resumeText || !jobDescription || !name) {
       return res.status(400).json({
         success: false,
-        error: "resumeText and jobDescription are required",
+        error: "name, resumeText and jobDescription are required",
       });
     }
 
-    const result = await generateResume(resumeText, jobDescription);
+    const optimizedResume = await generateResume(
+      resumeText,
+      jobDescription
+    );
 
-    res.status(200).json({
+    const resume = await Resume.create({
+      user: req.user.id,
+      name,
+      aiGeneratedContent: optimizedResume,
+    });
+
+    res.status(201).json({
       success: true,
-      data: {
-        optimizedResume: result,
-      },
+      data: resume,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: "Internal server error",
+      error: "Failed to generate and save resume",
     });
   }
 };
+
 
 const createResume = async (req, res) => {
   try {
@@ -63,8 +71,66 @@ const getUserResumes = async (req, res) => {
   }
 };
 
+const updateResume = async (req, res) => {
+  try {
+    const resume = await Resume.findById(req.params.id);
+
+    if (!resume) {
+      return res.status(404).json({ message: "Resume not found" });
+    }
+
+    if (resume.user.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    const updatedResume = await Resume.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      data: updatedResume,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to update resume",
+    });
+  }
+};
+
+const deleteResume = async (req, res) => {
+  try {
+    const resume = await Resume.findById(req.params.id);
+
+    if (!resume) {
+      return res.status(404).json({ message: "Resume not found" });
+    }
+
+    if (resume.user.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    await resume.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      message: "Resume deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to delete resume",
+    });
+  }
+};
+
 module.exports = {
   generateResumeController,
   createResume,
   getUserResumes,
+  updateResume,
+  deleteResume,
 };
