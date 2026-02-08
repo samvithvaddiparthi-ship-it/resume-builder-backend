@@ -2,6 +2,7 @@ const express = require("express");
 
 const {
   generateResumeController,
+  regenerateResume,
   createResume,
   getUserResumes,
   updateResume,
@@ -13,6 +14,7 @@ const { protect } = require("../middleware/authMiddleware");
 const router = express.Router();
 
 router.post("/generate", protect, generateResumeController);
+router.post("/:id/regenerate", protect, regenerateResume);
 router.post("/create", protect, createResume);
 router.get("/my", protect, getUserResumes);
 router.put("/:id", protect, updateResume);

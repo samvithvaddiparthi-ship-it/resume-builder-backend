@@ -46,6 +46,41 @@ const generateResumeController = async (req, res) => {
   }
 };
 
+const regenerateResume = async (req, res) => {
+  try {
+    const resume = await Resume.findById(req.params.id);
+
+    if (!resume) {
+      return res.status(404).json({ message: "Resume not found" });
+    }
+
+    if (resume.user.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    const aiResponse = await generateResume(
+      JSON.stringify(resume.aiGeneratedContent),
+      "Improve this resume with stronger wording and better ATS optimization",
+      "general"
+    );
+
+    const parsedContent = JSON.parse(aiResponse);
+
+    resume.aiGeneratedContent = parsedContent;
+    await resume.save();
+
+    res.status(200).json({
+      success: true,
+      data: resume
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to regenerate resume"
+    });
+  }
+};
+
 const createResume = async (req, res) => {
   try {
     const resume = await Resume.create({
@@ -139,6 +174,7 @@ const deleteResume = async (req, res) => {
 
 module.exports = {
   generateResumeController,
+  regenerateResume,
   createResume,
   getUserResumes,
   updateResume,
