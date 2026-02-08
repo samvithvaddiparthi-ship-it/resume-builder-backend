@@ -3,7 +3,7 @@ const { generateResume } = require("../services/aiService");
 
 const generateResumeController = async (req, res) => {
   try {
-    const { name, resumeText, jobDescription } = req.body;
+    const { name, resumeText, jobDescription, role = "general" } = req.body;
 
     if (!name || !resumeText || !jobDescription) {
       return res.status(400).json({
@@ -12,7 +12,11 @@ const generateResumeController = async (req, res) => {
       });
     }
 
-    const aiResponse = await generateResume(resumeText, jobDescription);
+    const aiResponse = await generateResume(
+      resumeText,
+      jobDescription,
+      role
+    );
 
     let parsedContent;
     try {
@@ -46,17 +50,17 @@ const createResume = async (req, res) => {
   try {
     const resume = await Resume.create({
       user: req.user.id,
-      ...req.body,
+      ...req.body
     });
 
     res.status(201).json({
       success: true,
-      data: resume,
+      data: resume
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: "Failed to create resume",
+      error: "Failed to create resume"
     });
   }
 };
@@ -67,12 +71,12 @@ const getUserResumes = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: resumes,
+      data: resumes
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: "Failed to fetch resumes",
+      error: "Failed to fetch resumes"
     });
   }
 };
@@ -97,12 +101,12 @@ const updateResume = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: updatedResume,
+      data: updatedResume
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: "Failed to update resume",
+      error: "Failed to update resume"
     });
   }
 };
@@ -123,12 +127,12 @@ const deleteResume = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Resume deleted successfully",
+      message: "Resume deleted successfully"
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: "Failed to delete resume",
+      error: "Failed to delete resume"
     });
   }
 };
@@ -138,5 +142,5 @@ module.exports = {
   createResume,
   getUserResumes,
   updateResume,
-  deleteResume,
+  deleteResume
 };

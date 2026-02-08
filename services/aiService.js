@@ -1,24 +1,26 @@
-const OpenAI = require("openai");
+const OpenAI = require("openai").default;
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY
 });
 
-const generateResume = async (resumeText, jobDescription) => {
+const generateResume = async (resumeText, jobDescription, role = "general") => {
   const prompt = `
 You are a professional resume writer and ATS optimization expert.
 
-Task:
-Rewrite the resume to match the given job description.
-Use strong action verbs.
-Make it ATS-friendly.
-Be concise and professional.
+Target Role: ${role}
 
-Return the output strictly in JSON format with these keys:
-- summary
-- experience (array of bullet points)
-- skills (array)
-- projects (array)
+Rules:
+- Use strong action verbs
+- Focus on skills relevant to the target role
+- Optimize for ATS keyword matching
+- Keep content concise and impactful
+
+Return ONLY valid JSON with these keys:
+summary
+experience
+skills
+projects
 
 Resume:
 ${resumeText}
@@ -30,7 +32,7 @@ ${jobDescription}
   const response = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [{ role: "user", content: prompt }],
-    temperature: 0.4,
+    temperature: 0.4
   });
 
   return response.choices[0].message.content;
