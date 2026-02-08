@@ -1,3 +1,4 @@
+const Resume = require("../models/Resume");
 const { generateResume } = require("../services/aiService");
 
 const generateResumeController = async (req, res) => {
@@ -27,6 +28,43 @@ const generateResumeController = async (req, res) => {
   }
 };
 
+const createResume = async (req, res) => {
+  try {
+    const resume = await Resume.create({
+      user: req.user.id,
+      ...req.body,
+    });
+
+    res.status(201).json({
+      success: true,
+      data: resume,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to create resume",
+    });
+  }
+};
+
+const getUserResumes = async (req, res) => {
+  try {
+    const resumes = await Resume.find({ user: req.user.id });
+
+    res.status(200).json({
+      success: true,
+      data: resumes,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch resumes",
+    });
+  }
+};
+
 module.exports = {
   generateResumeController,
+  createResume,
+  getUserResumes,
 };
