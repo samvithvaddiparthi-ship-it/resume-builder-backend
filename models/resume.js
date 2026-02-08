@@ -26,6 +26,10 @@ const resumeSchema = new mongoose.Schema(
     projects: {
       type: Array,
       default: []
+    },
+    aiGeneratedContent: {
+      type: Object,
+      default: {}
     }
   },
   { timestamps: true }

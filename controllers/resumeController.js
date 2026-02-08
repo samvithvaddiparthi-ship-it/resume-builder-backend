@@ -3,38 +3,44 @@ const { generateResume } = require("../services/aiService");
 
 const generateResumeController = async (req, res) => {
   try {
-    const { resumeText, jobDescription, name } = req.body;
+    const { name, resumeText, jobDescription } = req.body;
 
-    if (!resumeText || !jobDescription || !name) {
+    if (!name || !resumeText || !jobDescription) {
       return res.status(400).json({
         success: false,
-        error: "name, resumeText and jobDescription are required",
+        error: "name, resumeText and jobDescription are required"
       });
     }
 
-    const optimizedResume = await generateResume(
-      resumeText,
-      jobDescription
-    );
+    const aiResponse = await generateResume(resumeText, jobDescription);
+
+    let parsedContent;
+    try {
+      parsedContent = JSON.parse(aiResponse);
+    } catch (err) {
+      return res.status(500).json({
+        success: false,
+        error: "AI response was not valid JSON"
+      });
+    }
 
     const resume = await Resume.create({
       user: req.user.id,
       name,
-      aiGeneratedContent: optimizedResume,
+      aiGeneratedContent: parsedContent
     });
 
     res.status(201).json({
       success: true,
-      data: resume,
+      data: resume
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: "Failed to generate and save resume",
+      error: "Failed to generate resume"
     });
   }
 };
-
 
 const createResume = async (req, res) => {
   try {
